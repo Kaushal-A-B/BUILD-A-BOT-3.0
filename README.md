@@ -27,7 +27,7 @@ The project has two halves — **image processing (offline, on a PC)** and **mot
 
 ---
 
-## 🛠️ Hardware Used
+## Hardware Used
 | Component | Purpose |
 |---|---|
 | 2× 28BYJ-48 Stepper Motor | Wind/unwind the two cords driving the pen gondola |
@@ -38,7 +38,7 @@ The project has two halves — **image processing (offline, on a PC)** and **mot
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 ```
 ├── firmware/
 │   ├── pen_control.ino        # Servo pen up/down control
@@ -53,7 +53,7 @@ The project has two halves — **image processing (offline, on a PC)** and **mot
 
 ---
 
-## 🚀 Usage
+## Usage
 
 **1. Generate the drawing path from an image:**
 ```bash
@@ -69,17 +69,17 @@ Power up the motors and servo, load paper, and let the arms trace the image — 
 
 ---
 
-## 🎥 Inspiration
+## Inspiration
 Design inspired by polargraph/pendulum-style plotter builds like [this one](https://www.youtube.com/watch?v=T0jwdrgVBBc) — reworked here with a from-scratch image processing pipeline and coordinated dual-cord stepper control.
 
 ---
 
-## 🏆 Built For
-Built for **Build A Bot 3.0**.
+##  Built For
+Built for **Build A Bot 3.0 Second Place**.
 
 ---
 
-## 📌 Notes / Future Improvements
+## Notes / Future Improvements
 - Tune `stepDelay` for smoother vs. faster drawing
 - Add acceleration/deceleration ramping for cleaner curves
 - Calibrate cord-length-to-step mapping and motor spacing for more accurate triangulation
