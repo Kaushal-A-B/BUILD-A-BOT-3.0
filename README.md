@@ -74,7 +74,7 @@ Built for **Build A Bot 3.0** — Second Place.
 
 ---
 
-## 📌 Notes / Future Improvements
+## Notes / Future Improvements
 - Tune `stepDelay` for smoother vs. faster drawing
 - Add acceleration/deceleration ramping for cleaner curves
 - Calibrate cord-length-to-step mapping and motor spacing for more accurate triangulation
