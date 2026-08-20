@@ -40,16 +40,11 @@ The project has two halves — **image processing (offline, on a PC)** and **mot
 
 ## Repository Structure
 ```
-├── firmware/
-│   ├── pen_control.ino        # Servo pen up/down control
-│   └── plotter_motion.ino     # Dual-stepper coordinated motion control
-├── image_processing/
-│   └── image_to_vectors.py    # Image → edge detection → vector path pipeline
-├── output/
-│   ├── vectors.txt            # Generated (x, y) waypoints in mm
-│   └── vector_preview.png     # Visual preview of the traced path
-└── README.md
+├── README.md
+├── plotter_motion.ino      # Dual-stepper coordinated motion control + pen servo
+└── image_to_vectors.py     # Image → edge detection → vector path pipeline
 ```
+Running `image_to_vectors.py` locally will also produce `vectors.txt` (waypoints) and `vector_preview.png` (path preview) — these aren't checked into the repo since they're generated per-image.
 
 ---
 
@@ -62,10 +57,10 @@ python image_to_vectors.py
 This produces `vectors.txt` (the coordinate path) and a preview image so you can check the line quality before plotting.
 
 **2. Flash the firmware:**
-Upload `plotter_motion.ino` (and pen control logic) to your microcontroller, feeding in the generated `vectors.txt` path.
+Upload `plotter_motion.ino` to your microcontroller, feeding in the generated `vectors.txt` path. Before running, measure your frame and update the three calibration constants at the top of the file: `MOTOR_SPACING_MM`, `PULLEY_RADIUS_MM`, and `START_Y_MM`.
 
 **3. Plot:**
-Power up the motors and servo, load paper, and let the arms trace the image — pen down for drawing strokes, pen up for travel moves.
+Power up the motors and servo, load paper, and let the gondola trace the image — pen down for drawing strokes, pen up for travel moves.
 
 ---
 
@@ -74,12 +69,12 @@ Design inspired by polargraph/pendulum-style plotter builds like [this one](http
 
 ---
 
-##  Built For
-Built for **Build A Bot 3.0 Second Place**.
+## Built For
+Built for **Build A Bot 3.0** — Second Place.
 
 ---
 
-## Notes / Future Improvements
+## 📌 Notes / Future Improvements
 - Tune `stepDelay` for smoother vs. faster drawing
 - Add acceleration/deceleration ramping for cleaner curves
 - Calibrate cord-length-to-step mapping and motor spacing for more accurate triangulation
