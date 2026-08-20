@@ -39,6 +39,34 @@ const int STEP_SEQUENCE[4][4] = {
 
 const int STEP_DELAY_MS = 3; // lower = faster, but may skip steps
 
+// ---------- CALIBRATION CONSTANTS — measure these on your frame ----------
+// Horizontal distance (mm) between Motor A and Motor B shafts, center to center.
+// Measure with a ruler across the top of the frame.
+const float MOTOR_SPACING_MM = 300.0;   // <-- TODO: measure and update
+
+// Radius (mm) of the spool/pulley the cord winds around on each motor shaft.
+// Measure the spool diameter with calipers/ruler and halve it.
+const float PULLEY_RADIUS_MM = 5.0;     // <-- TODO: measure and update
+
+// Output-shaft steps per full revolution for a 28BYJ-48 in full-step mode
+// (32 steps/rev motor shaft x ~64:1 internal gearbox ≈ 2048). Leave as-is
+// unless you know your specific unit differs.
+const float STEPS_PER_REV = 2048.0;
+
+// Derived: how many motor steps correspond to 1 mm of cord let out/reeled in
+const float STEPS_PER_MM = STEPS_PER_REV / (2.0 * PI * PULLEY_RADIUS_MM);
+
+// Starting pen position (mm) relative to Motor A at (0,0) — wherever you
+// physically place the gondola before power-on. A natural choice is
+// centered directly below the midpoint of the two motors.
+const float START_X_MM = MOTOR_SPACING_MM / 2.0;
+const float START_Y_MM = 150.0;         // <-- TODO: measure/estimate
+
+// Current cord lengths, tracked as the plotter moves. Initialized from the
+// known starting position via Pythagoras.
+float currentLenA = sqrt(sq(START_X_MM) + sq(START_Y_MM));
+float currentLenB = sqrt(sq(MOTOR_SPACING_MM - START_X_MM) + sq(START_Y_MM));
+
 void setup() {
   Serial.begin(115200);
 
@@ -79,7 +107,6 @@ void penDown() {
 }
 
 // ---------- Low-level stepping ----------
-// dirA / dirB: +1 or -1 for winding direction of each cord's motor
 void stepBoth(int stepIndexA, int stepIndexB) {
   digitalWrite(A_IN1, STEP_SEQUENCE[stepIndexA][0]);
   digitalWrite(A_IN2, STEP_SEQUENCE[stepIndexA][1]);
@@ -106,14 +133,37 @@ void runSteps(int count, int dirA, int dirB) {
   }
 }
 
-// ---------- High-level move ----------
-// Placeholder: convert a target (x_mm, y_mm) into cord-length deltas and
-// step counts based on your frame's motor spacing, then call runSteps()
-// for each motor accordingly. Fill in with your triangulation math.
+// ---------- High-level move (real triangulation) ----------
+// Converts a target (x_mm, y_mm) — measured from Motor A at the origin —
+// into the cord-length change needed on each motor, then steps both
+// motors that many steps in the correct direction.
 void moveTo(float x_mm, float y_mm) {
-  // 1. Compute new left/right cord lengths from (x_mm, y_mm) and motor
-  //    mounting positions.
-  // 2. Compute the delta vs. current cord lengths -> convert to steps
-  //    using your pulley radius and steps-per-revolution.
-  // 3. runSteps(steps, dirA, dirB);
+  // 1. Target cord lengths via Pythagoras, from each motor to (x, y)
+  float targetLenA = sqrt(sq(x_mm) + sq(y_mm));
+  float targetLenB = sqrt(sq(MOTOR_SPACING_MM - x_mm) + sq(y_mm));
+
+  // 2. How much each cord needs to change (mm). Positive = let cord out
+  //    (gondola moves away from that motor); negative = reel cord in.
+  float deltaA_mm = targetLenA - currentLenA;
+  float deltaB_mm = targetLenB - currentLenB;
+
+  // 3. Convert mm deltas to step counts + direction
+  int stepsA = round(abs(deltaA_mm) * STEPS_PER_MM);
+  int stepsB = round(abs(deltaB_mm) * STEPS_PER_MM);
+  int dirA = (deltaA_mm >= 0) ? 1 : -1;   // sign convention: verify against
+  int dirB = (deltaB_mm >= 0) ? 1 : -1;   // your wiring, flip if it moves backward
+
+  // 4. Step whichever motor needs more steps; the other catches up
+  //    proportionally so both cords finish changing length together,
+  //    producing a straight-ish line instead of an L-shaped move.
+  int maxSteps = max(stepsA, stepsB);
+  for (int i = 0; i < maxSteps; i++) {
+    bool moveA = (i * stepsA) / max(maxSteps, 1) != ((i - 1) * stepsA) / max(maxSteps, 1);
+    bool moveB = (i * stepsB) / max(maxSteps, 1) != ((i - 1) * stepsB) / max(maxSteps, 1);
+    runSteps(1, moveA ? dirA : 0, moveB ? dirB : 0);
+  }
+
+  // 5. Update tracked cord lengths
+  currentLenA = targetLenA;
+  currentLenB = targetLenB;
 }
