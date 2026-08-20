@@ -6,7 +6,7 @@ Instead of a belt-and-rail Cartesian gantry, this plotter suspends a pen gondola
 
 ---
 
-## ✨ How It Works
+## How It Works
 
 The project has two halves — **image processing (offline, on a PC)** and **motion control (on the plotter itself)**.
 
